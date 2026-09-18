@@ -4,4 +4,4 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: highrise main:Bot $ROOM_ID $BOT_TOKEN
+    startCommand: highrise main:Bot 6894bd39e3e4a405517cb530 686523fd88522a5a95892544
