@@ -1,0 +1,6 @@
+services:
+  - type: worker
+    name: highrise-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: highrise main:Bot $ROOM_ID $BOT_TOKEN
