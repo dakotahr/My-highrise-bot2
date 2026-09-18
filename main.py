@@ -1,18 +1,10 @@
-import os
-import highrise
-from highrise import BaseBot, User, ChannelMessage
+from highrise import BaseBot, User, SessionMetadata
 
 class Bot(BaseBot):
-    async def on_start(self, session_metadata) -> None:
+    async def on_start(self, session_metadata: SessionMetadata) -> None:
         print("✅ Bot conectado correctamente")
-        await self.chat("¡Hola! Soy un bot configurado desde cero 🤖")
+        await self.highrise.chat("¡Hola! Soy un bot configurado desde cero 🤖")
 
-    async def on_channel_message(self, user: User, message: ChannelMessage) -> None:
-        if message.content.lower() == "!hola":
-            await self.chat(f"¡Hola, {user.username}! 👋")
-
-if __name__ == "__main__":
-    bot_token = os.environ["BOT_TOKEN"]
-    bot_name = os.environ["BOT_NAME"]
-    room_id = os.environ["ROOM_ID"]
-    highrise.main(bot_token, bot_name, Bot, room_id)
+    async def on_chat(self, user: User, message: str) -> None:
+        if message.lower() == "!hola":
+            await self.highrise.chat(f"¡Hola, {user.username}! 👋")
