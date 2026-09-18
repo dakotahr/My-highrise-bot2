@@ -4,4 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: highrise main:Bot 6894bd39e3e4a405517cb530 c8f061d0ec1d252e8ef407165a9820f64ec11e3106f6095e6910831db935ecfe   
+    startCommand: highrise main:Bot 6894bd39e3e4a405517cb530 686523fd88522a5a95892544
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.16
