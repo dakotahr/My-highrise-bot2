@@ -25,15 +25,21 @@ class Bot(BaseBot):
     def __init__(self):
         super().__init__()
         # ⚠️ ¡Escribe tu nombre de usuario de Highrise sin el @ aquí abajo!
-        self.nombre_dueño = "IamDakota"  
+        self.nombre_dueño = "TU_NOMBRE_DE_USUARIO_AQUÍ"  
         self.id_objetivo_seguir = None
         self.contador_visitas = 0
         self.contador_mensajes = 0
+        
+        # Variables para el sistema de Trivia
+        self.trivia_activa = False
+        self.pregunta_actual = ""
+        self.respuesta_correcta = ""
         
         self.vip_x = 5.5
         self.vip_y = 0.0
         self.vip_z = 5.5
 
+        # Diccionario de emotes sencillos en español
         self.emotes_faciles = {
             "baile": "dance-shoppingcart", "baile2": "dance-tiktok8", "baile3": "dance-weird",
             "macarena": "dance-macarena", "beso": "emote-kiss", "flotar": "emote-float",
@@ -41,6 +47,15 @@ class Bot(BaseBot):
             "saludo": "emote-curtsy", "llorar": "emote-cry", "susto": "emote-scared",
             "sueño": "emote-tired", "calor": "emote-hot"
         }
+        
+        # Base de datos de preguntas para la Trivia
+        self.preguntas_trivia = [
+            {"p": "¿Cuál es el planeta más cercano al Sol?", "r": "mercurio"},
+            {"p": "¿Cuántos minutos tiene una hora?", "r": "60"},
+            {"p": "¿Qué animal dice miau?", "r": "gato"},
+            {"p": "¿Cuál es el color del cielo en un día despejado?", "r": "azul"},
+            {"p": "¿Cuántos días tiene un año bisiesto?", "r": "366"}
+        ]
         
         self.anuncios = [
             "📢 Recuerda dejar tu LIKE (❤️) a la sala para apoyarnos a seguir creciendo.",
@@ -73,6 +88,15 @@ class Bot(BaseBot):
         msg = message.lower().strip()
         es_dueño = (user.username.lower() == self.nombre_dueño.lower())
 
+        # --- RECONOCER RESPUESTAS DE LA TRIVIA ---
+        if self.trivia_activa:
+            if msg == self.respuesta_correcta:
+                await self.highrise.chat(f"🎉 ¡CORRECTO, {user.username}! La respuesta era {self.respuesta_correcta.upper()}. Ganaste el juego.")
+                await self.highrise.send_emote("dance-tiktok8", user.id)
+                self.trivia_activa = False
+                return
+
+        # Contador de mensajes para anuncios masivos
         self.contador_mensajes += 1
         if self.contador_mensajes >= 5:  
             self.contador_mensajes = 0
@@ -80,7 +104,8 @@ class Bot(BaseBot):
             await self.highrise.chat(frase_al_azar)
 
         if msg == "!lista" or msg == "!comandos" or msg == "!emotes":
-            await self.highrise.chat("✨ Di palabras comunes (baile, beso, flotar, risa) o el nombre técnico de un emote.")
+            await self.highrise.chat("✨ Di palabras comunes (baile, beso, flotar, risa) o el nombre de un emote.")
+            await self.highrise.chat("🎮 Juego: Escribe !trivia para iniciar una pregunta.")
             if es_dueño:
                 await self.highrise.chat("👑 Dueño: !seguir | !quedarme | !vuelan todos | !visitas | !clonar")
             return
@@ -89,15 +114,26 @@ class Bot(BaseBot):
             await self.highrise.chat(f"📊 Registro actual: Hemos recibido {self.contador_visitas} visitas.")
             return
 
-        # 👕 --- NUEVO COMANDO SECRETO DE ROPA --- 👕
+        # --- SISTEMA DE TRIVIA ---
+        if msg == "!trivia":
+            if self.trivia_activa:
+                await self.highrise.chat(f"Ya hay una trivia en curso. La pregunta es: {self.pregunta_actual}")
+            else:
+                juego = random.choice(self.preguntas_trivia)
+                self.pregunta_actual = juego["p"]
+                self.respuesta_correcta = juego["r"]
+                self.trivia_activa = True
+                await self.highrise.chat("🧠 ¡COMIENZA LA TRIVIA! El primero en responder correctamente en el chat gana.")
+                await self.highrise.chat(f"Pregunta: {self.pregunta_actual}")
+            return
+
+        # --- COMANDO CLONAR ROPA ---
         if msg == "!clonar" and es_dueño:
             await self.highrise.chat("🔍 Analizando tu outfit actual... Te pasaré los códigos por el chat:")
             try:
-                # Buscamos tu ropa actual en los datos de la sala
                 room_users = await self.highrise.get_room_users()
                 for room_user, position in room_users.content:
                     if room_user.id == user.id:
-                        # Obtenemos los detalles de tu avatar de forma segura
                         outfit_data = await self.highrise.get_user_outfit(user.id)
                         for item in outfit_data.outfit:
                             await self.highrise.chat(f"Prenda tipo '{item.type}': ID -> {item.id}")
@@ -138,6 +174,7 @@ class Bot(BaseBot):
             await self.highrise.chat("🛑 Me quedo en esta posición.")
             return
 
+        # Traductor de palabras fáciles
         for palabra_clave, nombre_real in self.emotes_faciles.items():
             if palabra_clave in msg:
                 try:
@@ -146,6 +183,7 @@ class Bot(BaseBot):
                 except Exception:
                     pass
 
+        # Intento de emote universal directo
         try:
             await self.highrise.send_emote(message.strip(), user.id)
         except Exception:
