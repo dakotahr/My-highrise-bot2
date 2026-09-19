@@ -6,7 +6,7 @@ class Bot(BaseBot):
     def __init__(self):
         super().__init__()
         # --- Variables de Control de Sistemas ---
-        self.nombre_dueño = "TU_NOMBRE_DE_USUARIO_AQUÍ"  # ⚠️ ¡CAMBIA ESTO por tu nombre en Highrise sin el @!
+        self.nombre_dueño = "IamDakota"  # ⚠️ ¡CAMBIA ESTO por tu nombre en Highrise sin el @!
         self.id_objetivo_seguir = None
         self.contador_visitas = 0
         self.contador_mensajes = 0
