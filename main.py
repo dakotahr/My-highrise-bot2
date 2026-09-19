@@ -25,7 +25,7 @@ class Bot(BaseBot):
     def __init__(self):
         super().__init__()
         # ⚠️ ¡Escribe tu nombre de usuario de Highrise sin el @ aquí abajo!
-        self.nombre_dueño = "TU_NOMBRE_DE_USUARIO_AQUÍ"  
+        self.nombre_dueño = "IamDakota"  
         self.id_objetivo_seguir = None
         self.contador_visitas = 0
         self.contador_mensajes = 0
