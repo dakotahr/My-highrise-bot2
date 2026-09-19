@@ -39,13 +39,32 @@ class Bot(BaseBot):
         self.vip_y = 0.0
         self.vip_z = 5.5
 
-        # Diccionario de emotes sencillos en español
+        # 🌟 DICCIONARIO ACTUALIZADO CON TUS NUEVOS EMOTES 🌟
         self.emotes_faciles = {
-            "baile": "dance-shoppingcart", "baile2": "dance-tiktok8", "baile3": "dance-weird",
-            "macarena": "dance-macarena", "beso": "emote-kiss", "flotar": "emote-float",
-            "gravedad": "emote-gravity", "risa": "emote-laughing", "amor": "emote-lust",
-            "saludo": "emote-curtsy", "llorar": "emote-cry", "susto": "emote-scared",
-            "sueño": "emote-tired", "calor": "emote-hot"
+            "baile": "dance-shoppingcart", 
+            "baile2": "dance-tiktok8", 
+            "baile3": "dance-weird",
+            "macarena": "dance-macarena", 
+            "beso": "emote-kiss", 
+            "flotar": "emote-float",
+            "gravedad": "emote-gravity", 
+            "risa": "emote-laughing", 
+            "amor": "emote-lust",
+            "saludo": "emote-curtsy", 
+            "llorar": "emote-cry", 
+            "susto": "emote-scared",
+            "sueño": "emote-tired", 
+            "calor": "emote-hot",
+            # --- Tus nuevos emotes añadidos aquí en limpio ---
+            "woah": "dance-vogue",
+            "fresco": "dance-fresh",
+            "descansar": "emote-rest",
+            "twerk": "dance-twerk",
+            "corazon": "emote-heartfingers",
+            "minar": "dance-fortune",
+            "fama": "dance-popstar",
+            "estrella": "emote-superstar",
+            "fans": "emote-gazing"
         }
         
         # Base de datos de preguntas para la Trivia
@@ -104,7 +123,7 @@ class Bot(BaseBot):
             await self.highrise.chat(frase_al_azar)
 
         if msg == "!lista" or msg == "!comandos" or msg == "!emotes":
-            await self.highrise.chat("✨ Di palabras comunes (baile, beso, flotar, risa) o el nombre de un emote.")
+            await self.highrise.chat("✨ Di palabras fáciles en español (ej: twerk, woah, corazon, estrella, fresco, minar, fans, descansar).")
             await self.highrise.chat("🎮 Juego: Escribe !trivia para iniciar una pregunta.")
             if es_dueño:
                 await self.highrise.chat("👑 Dueño: !seguir | !quedarme | !vuelan todos | !visitas | !clonar")
@@ -174,7 +193,7 @@ class Bot(BaseBot):
             await self.highrise.chat("🛑 Me quedo en esta posición.")
             return
 
-        # Traductor de palabras fáciles
+        # Traductor de palabras fáciles en español
         for palabra_clave, nombre_real in self.emotes_faciles.items():
             if palabra_clave in msg:
                 try:
@@ -183,7 +202,7 @@ class Bot(BaseBot):
                 except Exception:
                     pass
 
-        # Intento de emote universal directo
+        # Intento de emote universal directo (ej: si escriben cozynap a secas)
         try:
             await self.highrise.send_emote(message.strip(), user.id)
         except Exception:
