@@ -1,5 +1,6 @@
 import random
 from highrise import BaseBot, User, SessionMetadata
+from highrise.models import Position  # Importamos esto para mover al bot
 
 class Bot(BaseBot):
     def __init__(self):
@@ -8,8 +9,7 @@ class Bot(BaseBot):
         self.pregunta_actual = ""
         self.respuesta_correcta = ""
         
-        # 🌟 DICCIONARIO DE PALABRAS CORTAS EN ESPAÑOL 🌟
-        # A la izquierda pones cómo lo escribe el usuario, a la derecha el nombre técnico real del juego.
+        # Diccionario de apodos fáciles en español
         self.emotes_faciles = {
             "baile": "dance-shoppingcart",
             "baile2": "dance-tiktok8",
@@ -37,10 +37,18 @@ class Bot(BaseBot):
 
     async def on_start(self, session_metadata: SessionMetadata) -> None:
         print("✅ Bot conectado correctamente")
-        await self.highrise.chat("¡Hola! Sistema simplificado activado. Solo di palabras como: baile, beso, flotar, risa... 🤖🎉")
+        
+        # 📍 CONFIGURACIÓN DE POSICIÓN 📍
+        # Cambiá estos números (X, Y, Z) para ubicar al bot donde quieras en tu sala:
+        # X = Horizontal, Y = Altura/Piso, Z = Profundidad, facing = Hacia dónde mira (FrontRight, FrontLeft, etc.)
+        posicion_bot = Position(x=4.5, y=0.0, z=3.5, facing="FrontRight")
+        
+        # Le ordenamos al bot teletransportarse a ese lugar exacto apenas entra
+        await self.highrise.teleport(session_metadata.user_id, posicion_bot)
+        await self.highrise.chat("¡Hola! Estoy listo en mi puesto. Decí cualquier emote del juego o palabras fáciles 🤖🎉")
 
     async def on_user_join(self, user: User, position) -> None:
-        await self.highrise.chat(f"¡Bienvenido/a, {user.username}! 👋 Para bailar solo di la palabra: baile (o escribe !lista)")
+        await self.highrise.chat(f"¡Bienvenido/a, {user.username}! 👋 Escribe !lista para ver los emotes rápidos.")
         await self.highrise.send_emote("emote-curtsy")
 
     async def on_chat(self, user: User, message: str) -> None:
@@ -54,14 +62,10 @@ class Bot(BaseBot):
                 self.trivia_activa = False
                 return
 
-        # Comando para ver la lista de palabras fáciles
         if msg == "!lista" or msg == "!comandos" or msg == "!emotes":
-            await self.highrise.chat("✨ Di cualquiera de estas palabras en el chat para hacer el emote:")
-            await self.highrise.chat("baile | baile2 | baile3 | macarena | beso | flotar | gravedad")
-            await self.highrise.chat("risa | amor | saludo | llorar | susto | sueño | calor")
+            await self.highrise.chat("✨ Podés decir palabras fáciles (baile, beso, flotar, risa) o escribir directamente el nombre real de CUALQUIER emote del juego (ej: cozynap)")
             return
 
-        # Comando masivo
         if msg == "!bailartodos":
             await self.highrise.chat("¡Toda la sala a bailar! 🎉🥳")
             room_users = await self.highrise.get_room_users()
@@ -84,13 +88,20 @@ class Bot(BaseBot):
                 await self.highrise.chat(f"Pregunta: {self.pregunta_actual}")
             return
 
-        # --- 🌟 DETECTOR INTELIGENTE DE PALABRAS EN ESPAÑOL 🌟 ---
-        # Recorre la lista de palabras fáciles. Si el mensaje contiene esa palabra, tira el emote.
+        # --- 🌟 1. BUSCADOR EN LA LISTA EN ESPAÑOL 🌟 ---
         for palabra_clave, nombre_real in self.emotes_faciles.items():
             if palabra_clave in msg:
                 try:
                     await self.highrise.send_emote(nombre_real, user.id)
-                    return  # Frena el código para que no intente buscar más palabras en el mismo mensaje
+                    return
                 except Exception:
-                    print(f"Error al ejecutar: {nombre_real}")
+                    pass
 
+        # --- 🌟 2. SISTEMA UNIVERSAL (Cualquier emote del juego) 🌟 ---
+        # Si el usuario no usó una palabra en español, el bot intenta interpretar el texto directo como un emote oficial
+        try:
+            # Intentamos enviarle el emote tal cual como lo escribió (ej: cozynap)
+            await self.highrise.send_emote(message.strip(), user.id)
+        except Exception:
+            # Si el emote no existe en todo Highrise, el bot ignora el mensaje y no se traba
+            pass
