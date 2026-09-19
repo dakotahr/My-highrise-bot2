@@ -74,7 +74,7 @@ class Bot(BaseBot):
         es_dueño = (user.username.lower() == self.nombre_dueño.lower())
 
         self.contador_mensajes += 1
-        if self.contador_mensajes >= 5:  # Lanza frases cada 5 mensajes en el chat
+        if self.contador_mensajes >= 5:  
             self.contador_mensajes = 0
             frase_al_azar = random.choice(self.anuncios)
             await self.highrise.chat(frase_al_azar)
@@ -82,11 +82,28 @@ class Bot(BaseBot):
         if msg == "!lista" or msg == "!comandos" or msg == "!emotes":
             await self.highrise.chat("✨ Di palabras comunes (baile, beso, flotar, risa) o el nombre técnico de un emote.")
             if es_dueño:
-                await self.highrise.chat("👑 Dueño: !seguir | !quedarme | !vuelan todos | !visitas")
+                await self.highrise.chat("👑 Dueño: !seguir | !quedarme | !vuelan todos | !visitas | !clonar")
             return
 
         if msg == "!visitas" and es_dueño:
             await self.highrise.chat(f"📊 Registro actual: Hemos recibido {self.contador_visitas} visitas.")
+            return
+
+        # 👕 --- NUEVO COMANDO SECRETO DE ROPA --- 👕
+        if msg == "!clonar" and es_dueño:
+            await self.highrise.chat("🔍 Analizando tu outfit actual... Te pasaré los códigos por el chat:")
+            try:
+                # Buscamos tu ropa actual en los datos de la sala
+                room_users = await self.highrise.get_room_users()
+                for room_user, position in room_users.content:
+                    if room_user.id == user.id:
+                        # Obtenemos los detalles de tu avatar de forma segura
+                        outfit_data = await self.highrise.get_user_outfit(user.id)
+                        for item in outfit_data.outfit:
+                            await self.highrise.chat(f"Prenda tipo '{item.type}': ID -> {item.id}")
+                        return
+            except Exception as e:
+                print(f"Error al escanear ropa: {e}")
             return
 
         if msg == "!vuelan todos" and es_dueño:
@@ -134,11 +151,11 @@ class Bot(BaseBot):
         except Exception:
             pass
 
-# --- INICIO DOBLE (Arranca el servidor web y luego el bot de juego) ---
+# --- INICIO DOBLE ---
 if __name__ == "__main__":
     from highrise.__main__ import main as run_highrise
     
-    keep_alive()  # Enciende la señal para UptimeRobot
+    keep_alive()  
     
     async def start():
         await run_highrise()
