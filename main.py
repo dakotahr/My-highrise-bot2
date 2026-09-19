@@ -1,12 +1,12 @@
 import os
 import random
 import asyncio
-from threading import Thread
+from multiprocessing import Process  # Separación real para evitar congelamientos
 from flask import Flask  # Servidor web invisible de fondo
 from highrise import BaseBot, User, SessionMetadata
 from highrise.models import Position
 
-# --- SERVIDOR WEB INVISIBLE CORREGIDO PARA RENDERS ---
+# --- SERVIDOR WEB INVISIBLE PARA EVITAR APAGONES ---
 app = Flask('')
 
 @app.route('/')
@@ -14,15 +14,14 @@ def home():
     return "¡Bot en línea 24/7!"
 
 def run_web_server():
-    # Render asigna automáticamente un puerto variable en su entorno. 
-    # Usar os.environ.get lee el puerto correcto obligatoriamente para no dar error.
     puerto = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=puerto)
 
 def keep_alive():
-    t = Thread(target=run_web_server)
-    t.daemon = True
-    t.start()
+    # Usar un proceso independiente evita que Highrise congele a Flask
+    p = Process(target=run_web_server)
+    p.daemon = True
+    p.start()
 
 # --- CLASE PRINCIPAL DEL BOT ---
 class Bot(BaseBot):
@@ -194,10 +193,11 @@ class Bot(BaseBot):
         except Exception:
             pass
 
-# --- INICIO DOBLE ---
+# --- INICIO INDUSTRIAL (Arranca Flask y Highrise por separado) ---
 if __name__ == "__main__":
     from highrise.__main__ import main as run_highrise
     
+    # Encendemos la señal independiente
     keep_alive()  
     
     async def start():
