@@ -6,17 +6,18 @@ from flask import Flask
 from highrise import BaseBot, User, SessionMetadata
 from highrise.models import Position
 
-# --- SERVIDOR WEB COMPATIBLE CON CRON-JOB ---
+# --- SERVIDOR WEB ULTRA RÁPIDO PARA EVITAR EL TIMEOUT DE CRON-JOB ---
 app = Flask('')
 
 @app.route('/')
 def home():
-    # Devuelve un estado exitoso (200 OK) para que el despertador se ponga en verde
+    # Responder de inmediato sin procesar nada evita el "tiempo de espera agotado"
     return "Bot Activo 24/7", 200
 
 def run_web_server():
     puerto = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=puerto)
+    # Desactivamos el reloader para que consuma la mitad de memoria en Render
+    app.run(host='0.0.0.0', port=puerto, use_reloader=False)
 
 def keep_alive():
     p = Process(target=run_web_server)
@@ -27,7 +28,7 @@ def keep_alive():
 class Bot(BaseBot):
     def __init__(self):
         super().__init__()
-        # ⚠️ ¡Escribe tu nombre de usuario de Highrise sin el @ aquí abajo!
+        # 👑 Creador e Identidad del dueño fijada
         self.nombre_dueño = "IamDakota"  
         self.id_objetivo_seguir = None
         self.contador_visitas = 0
@@ -41,7 +42,7 @@ class Bot(BaseBot):
         self.vip_y = 0.0
         self.vip_z = 5.5
 
-        # Diccionario con todos tus emotes incluidos
+        # Diccionario de emotes
         self.emotes_faciles = {
             "baile": "dance-shoppingcart", "baile2": "dance-tiktok8", "baile3": "dance-weird",
             "macarena": "dance-macarena", "beso": "emote-kiss", "flotar": "emote-float",
@@ -109,11 +110,25 @@ class Bot(BaseBot):
             await self.highrise.chat("✨ Di palabras comunes en español (ej: twerk, woah, corazon, estrella, fresco, minar, fans, descansar).")
             await self.highrise.chat("🎮 Juego: Escribe !trivia para iniciar una pregunta.")
             if es_dueño:
-                await self.highrise.chat("👑 Dueño: !seguir | !quedarme | !vuelan todos | !visitas | !clonar")
+                await self.highrise.chat("👑 Dueño: !seguir | !quedarme | !vuelan todos | !visitas | !clonar | !kick @nombre")
             return
 
         if msg == "!visitas" and es_dueño:
             await self.highrise.chat(f"📊 Registro actual: Hemos recibido {self.contador_visitas} visitas.")
+            return
+
+        if msg.startswith("!kick ") and es_dueño:
+            nombre_objetivo = message[6:].strip().replace("@", "")
+            try:
+                room_users = await self.highrise.get_room_users()
+                for room_user, position in room_users.content:
+                    if room_user.username.lower() == nombre_objetivo.lower():
+                        await self.highrise.moderate_room(room_user.id, "kick")
+                        await self.highrise.chat(f"⚡ @{room_user.username} ha sido expulsado de la sala por el creador.")
+                        return
+                await self.highrise.chat("❌ No encontré a ese usuario en la sala.")
+            except Exception as e:
+                print(f"Error al expulsar: {e}")
             return
 
         if msg == "!trivia":
@@ -187,7 +202,7 @@ class Bot(BaseBot):
         except Exception:
             pass
 
-# --- INICIO INDUSTRIAL ---
+# --- INICIO ---
 if __name__ == "__main__":
     from highrise.__main__ import main as run_highrise
     keep_alive()  
