@@ -6,17 +6,15 @@ from flask import Flask
 from highrise import BaseBot, User, SessionMetadata
 from highrise.models import Position
 
-# --- SERVIDOR WEB ULTRA RÁPIDO PARA EVITAR EL TIMEOUT DE CRON-JOB ---
+# --- SERVIDOR WEB INVISIBLE PARA CRON-JOB ---
 app = Flask('')
 
 @app.route('/')
 def home():
-    # Responder de inmediato sin procesar nada evita el "tiempo de espera agotado"
     return "Bot Activo 24/7", 200
 
 def run_web_server():
     puerto = int(os.environ.get("PORT", 10000))
-    # Desactivamos el reloader para que consuma la mitad de memoria en Render
     app.run(host='0.0.0.0', port=puerto, use_reloader=False)
 
 def keep_alive():
@@ -42,24 +40,40 @@ class Bot(BaseBot):
         self.vip_y = 0.0
         self.vip_z = 5.5
 
-        # Diccionario de emotes
+        # 💃 DICCIONARIO CORREGIDO CON IDS MODERNOS 💃
         self.emotes_faciles = {
-            "baile": "dance-shoppingcart", "baile2": "dance-tiktok8", "baile3": "dance-weird",
-            "macarena": "dance-macarena", "beso": "emote-kiss", "flotar": "emote-float",
-            "gravedad": "emote-gravity", "risa": "emote-laughing", "amor": "emote-lust",
-            "saludo": "emote-curtsy", "llorar": "emote-cry", "susto": "emote-scared",
-            "sueño": "emote-tired", "calor": "emote-hot",
-            "woah": "dance-vogue", "fresco": "dance-fresh", "descansar": "emote-rest",
-            "twerk": "dance-twerk", "corazon": "emote-heartfingers", "minar": "dance-fortune",
-            "fama": "dance-popstar", "estrella": "emote-superstar", "fans": "emote-gazing"
+            "baile3": "dance-weird",       # Movido arriba para que el buscador lo lea primero
+            "baile2": "dance-tiktok8",     # Movido arriba para evitar choques con "baile"
+            "baile": "dance-shoppingcart", 
+            "macarena": "dance-macarena", 
+            "beso": "emote-kiss", 
+            "flotar": "emote-float",
+            "gravedad": "emote-gravity", 
+            "risa": "emote-laughing", 
+            "amor": "emote-lust",
+            "saludo": "emote-curtsy", 
+            "llorar": "emote-cry", 
+            "susto": "emote-scared",
+            "sueño": "emote-tired", 
+            "calor": "emote-hot",
+            # --- IDs oficiales corregidos del juego ---
+            "woah": "dance-vogue",
+            "fresco": "dance-fresh",
+            "descansar": "sit-relaxed",
+            "twerk": "dance-twerkout",      # ID Real Actualizado 🌟
+            "corazon": "emote-heartfingers",
+            "minar": "dance-fortune",
+            "fama": "dance-popstar",
+            "estrella": "emote-stars",      # ID Real Actualizado 🌟
+            "fans": "emote-gazing"
         }
         
         self.preguntas_trivia = [
-            {"p": "¿Cuál es el planeta más cercano al Sol?", "r": "mercurio"},
-            {"p": "¿Cuántos minutos tiene una hora?", "r": "60"},
-            {"p": "¿Qué animal dice miau?", "r": "gato"},
-            {"p": "¿Cuál es el color del cielo en un día despejado?", "r": "azul"},
-            {"p": "¿Cuántos días tiene un año bisiesto?", "r": "366"}
+            {"p": "Cuál es el planeta más cercano al Sol?", "r": "mercurio"},
+            {"p": "Cuántos minutos tiene una hora?", "r": "60"},
+            {"p": "Qué animal dice miau?", "r": "gato"},
+            {"p": "Cuál es el color del cielo en un día despejado?", "r": "azul"},
+            {"p": "Cuántos días tiene un año bisiesto?", "r": "366"}
         ]
         
         self.anuncios = [
@@ -107,7 +121,7 @@ class Bot(BaseBot):
             await self.highrise.chat(frase_al_azar)
 
         if msg == "!lista" or msg == "!comandos" or msg == "!emotes":
-            await self.highrise.chat("✨ Di palabras comunes en español (ej: twerk, woah, corazon, estrella, fresco, minar, fans, descansar).")
+            await self.highrise.chat("✨ Di palabras comunes en español (ej: twwerk, woah, corazon, estrella, fresco, minar, fans, descansar, baile2, baile3).")
             await self.highrise.chat("🎮 Juego: Escribe !trivia para iniciar una pregunta.")
             if es_dueño:
                 await self.highrise.chat("👑 Dueño: !seguir | !quedarme | !vuelan todos | !visitas | !clonar | !kick @nombre")
@@ -189,6 +203,7 @@ class Bot(BaseBot):
             await self.highrise.chat("🛑 Me quedo en esta posición.")
             return
 
+        # Traductor inteligente reparado (Busca primero las palabras largas)
         for palabra_clave, nombre_real in self.emotes_faciles.items():
             if palabra_clave in msg:
                 try:
