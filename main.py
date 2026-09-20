@@ -1,24 +1,24 @@
 import os
 import random
 import asyncio
-from multiprocessing import Process  # Separación real para evitar congelamientos
-from flask import Flask  # Servidor web invisible de fondo
+from multiprocessing import Process
+from flask import Flask
 from highrise import BaseBot, User, SessionMetadata
 from highrise.models import Position
 
-# --- SERVIDOR WEB INVISIBLE PARA EVITAR APAGONES ---
+# --- SERVIDOR WEB COMPATIBLE CON CRON-JOB ---
 app = Flask('')
 
 @app.route('/')
 def home():
-    return "¡Bot en línea 24/7!"
+    # Devuelve un estado exitoso (200 OK) para que el despertador se ponga en verde
+    return "Bot Activo 24/7", 200
 
 def run_web_server():
     puerto = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=puerto)
 
 def keep_alive():
-    # Usar un proceso independiente evita que Highrise congele a Flask
     p = Process(target=run_web_server)
     p.daemon = True
     p.start()
@@ -33,7 +33,6 @@ class Bot(BaseBot):
         self.contador_visitas = 0
         self.contador_mensajes = 0
         
-        # Variables para el sistema de Trivia
         self.trivia_activa = False
         self.pregunta_actual = ""
         self.respuesta_correcta = ""
@@ -42,7 +41,7 @@ class Bot(BaseBot):
         self.vip_y = 0.0
         self.vip_z = 5.5
 
-        # Diccionario actualizado con tus emotes
+        # Diccionario con todos tus emotes incluidos
         self.emotes_faciles = {
             "baile": "dance-shoppingcart", "baile2": "dance-tiktok8", "baile3": "dance-weird",
             "macarena": "dance-macarena", "beso": "emote-kiss", "flotar": "emote-float",
@@ -54,7 +53,6 @@ class Bot(BaseBot):
             "fama": "dance-popstar", "estrella": "emote-superstar", "fans": "emote-gazing"
         }
         
-        # Base de datos de preguntas para la Trivia
         self.preguntas_trivia = [
             {"p": "¿Cuál es el planeta más cercano al Sol?", "r": "mercurio"},
             {"p": "¿Cuántos minutos tiene una hora?", "r": "60"},
@@ -72,10 +70,10 @@ class Bot(BaseBot):
         ]
 
     async def on_start(self, session_metadata: SessionMetadata) -> None:
-        print("✅ Bot super avanzado conectado correctamente")
+        print("✅ Bot conectado correctamente")
         posicion_inicial = Position(x=4.5, y=0.0, z=3.5, facing="FrontRight")
         await self.highrise.teleport(session_metadata.user_id, posicion_inicial)
-        await self.highrise.chat("🤖 ¡Bot de Alta Tecnología Activo! Escribe !comandos para ver mis funciones.")
+        await self.highrise.chat("🤖 ¡Bot Activo! Escribe !comandos para ver mis funciones.")
 
     async def on_user_join(self, user: User, position) -> None:
         self.contador_visitas += 1
@@ -94,7 +92,6 @@ class Bot(BaseBot):
         msg = message.lower().strip()
         es_dueño = (user.username.lower() == self.nombre_dueño.lower())
 
-        # --- RECONOCER RESPUESTAS DE LA TRIVIA ---
         if self.trivia_activa:
             if msg == self.respuesta_correcta:
                 await self.highrise.chat(f"🎉 ¡CORRECTO, {user.username}! La respuesta era {self.respuesta_correcta.upper()}. Ganaste el juego.")
@@ -102,7 +99,6 @@ class Bot(BaseBot):
                 self.trivia_activa = False
                 return
 
-        # Contador de mensajes para anuncios masivos
         self.contador_mensajes += 1
         if self.contador_mensajes >= 5:  
             self.contador_mensajes = 0
@@ -120,7 +116,6 @@ class Bot(BaseBot):
             await self.highrise.chat(f"📊 Registro actual: Hemos recibido {self.contador_visitas} visitas.")
             return
 
-        # --- SISTEMA DE TRIVIA ---
         if msg == "!trivia":
             if self.trivia_activa:
                 await self.highrise.chat(f"Ya hay una trivia en curso. La pregunta es: {self.pregunta_actual}")
@@ -129,11 +124,10 @@ class Bot(BaseBot):
                 self.pregunta_actual = juego["p"]
                 self.respuesta_correcta = juego["r"]
                 self.trivia_activa = True
-                await self.highrise.chat("🧠 ¡COMIENZA LA TRIVIA! El primero en responder correctamente en el chat gana.")
+                await self.highrise.chat("🧠 ¡COMIENZA LA TRIVIA! El primero en responder correctamente gana.")
                 await self.highrise.chat(f"Pregunta: {self.pregunta_actual}")
             return
 
-        # --- COMANDO CLONAR ROPA ---
         if msg == "!clonar" and es_dueño:
             await self.highrise.chat("🔍 Analizando tu outfit actual... Te pasaré los códigos por el chat:")
             try:
@@ -193,14 +187,10 @@ class Bot(BaseBot):
         except Exception:
             pass
 
-# --- INICIO INDUSTRIAL (Arranca Flask y Highrise por separado) ---
+# --- INICIO INDUSTRIAL ---
 if __name__ == "__main__":
     from highrise.__main__ import main as run_highrise
-    
-    # Encendemos la señal independiente
     keep_alive()  
-    
     async def start():
         await run_highrise()
-        
     asyncio.run(start())
