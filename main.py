@@ -26,7 +26,7 @@ def keep_alive():
 class Bot(BaseBot):
     def __init__(self):
         super().__init__()
-        # 👑 Creador e Identidad del dueño fijada de forma permanente
+        # 👑 Creador e Identidad del dueño fijada
         self.nombre_dueño = "IamDakota"  
         self.id_objetivo_seguir = None
         self.contador_visitas = 0
@@ -40,12 +40,12 @@ class Bot(BaseBot):
         self.vip_y = 0.0
         self.vip_z = 5.5
 
-        # 💃 DICCIONARIO REPARADO CON TODOS LOS IDS MODERNOS DEL JUEGO 💃
+        # 💃 DICCIONARIO CORREGIDO CON IDS MODERNOS 💃
         self.emotes_faciles = {
-            "baile3": "dance-weird",       
-            "baile2": "dance-tiktok8",     
+            "baile3": "dance-weird",       # Movido arriba para que el buscador lo lea primero
+            "baile2": "dance-tiktok8",     # Movido arriba para evitar choques con "baile"
             "baile": "dance-shoppingcart", 
-            "macarena": "dance-macarena",
+            "macarena": "dance-macarena", 
             "beso": "emote-kiss", 
             "flotar": "emote-float",
             "gravedad": "emote-gravity", 
@@ -54,33 +54,18 @@ class Bot(BaseBot):
             "saludo": "emote-curtsy", 
             "llorar": "emote-cry", 
             "susto": "emote-scared",
-            "sueño": "emote-tired",
+            "sueño": "emote-tired", 
             "calor": "emote-hot",
-            # --- Tus emotes anteriores (IDs Oficiales Corregidos de Highrise) ---
-            "twerk": "dance-twerkout",      
-            "woah": "dance-voguehands",     
-            "fresco": "idle-dance-casual",  
+            # --- IDs oficiales corregidos del juego ---
+            "woah": "dance-vogue",
+            "fresco": "dance-fresh",
             "descansar": "sit-relaxed",
+            "twerk": "dance-twerkout",      # ID Real Actualizado 🌟
             "corazon": "emote-heartfingers",
             "minar": "dance-fortune",
             "fama": "dance-popstar",
-            "estrella": "emote-stars",      
-            "fans": "emote-gazing",
-            # --- Tus Nuevos Emotes Solicitados ---
-            "dormir": "emote-cozynap",      # cozynap 💤
-            "fantasma": "emoji-ghost",      # ghostfloat 👻
-            "heroe": "emote-hero",          # heropose 🦸‍♂️
-            "enojado": "emote-annoyed",     # annoyed 💢
-            "atento": "emote-attention",    # attentive 🧠
-            "cadera": "dance-hipshake",     # hipshake 🕺
-            "relajado": "idle-laidback",    # laidback 😎
-            "floss": "dance-floss",         # floss 💃
-            "aerobics": "dance-aerobics",   # aerobics 🏃‍♂️
-            "luchador": "emote-fighter",    # fighter 🥷
-            "patada": "emote-superkick",    # superkick 🦵
-            "tímido": "emote-bashful",      # bashful 😳
-            "kawaii": "emote-kawaii",       # kawaii ✨
-            "entusiasta": "emote-enthused"  # enthused 🙌
+            "estrella": "emote-stars",      # ID Real Actualizado 🌟
+            "fans": "emote-gazing"
         }
         
         self.preguntas_trivia = [
@@ -136,7 +121,7 @@ class Bot(BaseBot):
             await self.highrise.chat(frase_al_azar)
 
         if msg == "!lista" or msg == "!comandos" or msg == "!emotes":
-            await self.highrise.chat("✨ Di palabras fáciles (ej: twerk, woah, estrella, heroe, atento, dormir, fantasma, floss, cadera, relajado, luchador, patada).")
+            await self.highrise.chat("✨ Di palabras comunes en español (ej: twwerk, woah, corazon, estrella, fresco, minar, fans, descansar, baile2, baile3).")
             await self.highrise.chat("🎮 Juego: Escribe !trivia para iniciar una pregunta.")
             if es_dueño:
                 await self.highrise.chat("👑 Dueño: !seguir | !quedarme | !vuelan todos | !visitas | !clonar | !kick @nombre")
@@ -215,3 +200,27 @@ class Bot(BaseBot):
 
         if msg == "!quedarme" and es_dueño:
             self.id_objetivo_seguir = None
+            await self.highrise.chat("🛑 Me quedo en esta posición.")
+            return
+
+        # Traductor inteligente reparado (Busca primero las palabras largas)
+        for palabra_clave, nombre_real in self.emotes_faciles.items():
+            if palabra_clave in msg:
+                try:
+                    await self.highrise.send_emote(nombre_real, user.id)
+                    return
+                except Exception:
+                    pass
+
+        try:
+            await self.highrise.send_emote(message.strip(), user.id)
+        except Exception:
+            pass
+
+# --- INICIO ---
+if __name__ == "__main__":
+    from highrise.__main__ import main as run_highrise
+    keep_alive()  
+    async def start():
+        await run_highrise()
+    asyncio.run(start())
